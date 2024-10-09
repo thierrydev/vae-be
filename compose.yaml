@@ -1,0 +1,68 @@
+volumes:
+    db-store:
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: ./infra/docker/php/Dockerfile
+            args:
+                UID: ${UID:-1000}
+                GID: ${GID:-1000}
+            target: ${APP_BUILD_TARGET:-development}
+        volumes:
+            - type: bind
+              source: ./
+              target: /workspace
+
+    web:
+        build:
+            context: .
+            dockerfile: ./infra/docker/nginx/Dockerfile
+        ports:
+            - target: 80
+              published: ${WEB_PUBLISHED_PORT:-80}
+              protocol: tcp
+              mode: host
+        volumes:
+            - type: bind
+              source: ./
+              target: /workspace
+
+    db:
+        build:
+            context: .
+            dockerfile: ./infra/docker/mysql/Dockerfile
+        ports:
+            - target: 3306
+              published: ${DB_PUBLISHED_PORT:-3306}
+              protocol: tcp
+              mode: host
+        volumes:
+            - type: volume
+              source: db-store
+              target: /var/lib/mysql
+              volume:
+                  nocopy: true
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - "3400:80"
+        environment:
+            PMA_HOST: ${DB_HOST}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        depends_on:
+            - db
+    mailpit:
+        image: axllent/mailpit
+        ports:
+            - target: 8025
+              published: ${MAILPIT_PUBLISHED_PORT:-8025}
+              protocol: tcp
+              mode: host
