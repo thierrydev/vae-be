@@ -36,7 +36,7 @@ it('can get a specific user', function () {
      */
     Sanctum::actingAs($user, ['*']);
     // Send a Get request to fetch the user
-    $response = $this->get('/api/v1/users/' . $user->id);
+    $response = $this->get('/api/v1/users?id[eq]='. $user->id);
     // Assert that the request was successful (status code 200)
     $response->assertStatus(200);
     // Assert that the database has the correct number of records
@@ -114,9 +114,10 @@ it('can delete a user', function () {
      */
     Sanctum::actingAs($this->user, ['*']);
     // Send a DELETE request to update the user
-    $response =  $this->json('DELETE', '/api/v1/users', $userData);
+    $response =  $this->json('DELETE', '/api/v1/users',['id' =>$this->user->id,...$userData]);
     // Assert that the database is empty
     $this->assertDatabaseEmpty('users');
+    $this->assertDatabaseMissing('users', $userData);
     // Assert that the request was successful (status code 202)
     $response->assertStatus(202);
 });

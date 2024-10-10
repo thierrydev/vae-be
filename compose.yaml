@@ -1,5 +1,6 @@
 volumes:
     db-store:
+    db-test-store:
 
 services:
     app:
@@ -49,6 +50,28 @@ services:
             - MYSQL_USER=${DB_USERNAME}
             - MYSQL_PASSWORD=${DB_PASSWORD}
             - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+
+    db_test:
+        build:
+            context: .
+            dockerfile: ./infra/docker/mysql/Dockerfile
+        ports:
+            - target: 3306
+              published: ${TEST_DB_PORT:-3307}
+              protocol: tcp
+              mode: host
+        volumes:
+            - type: volume
+              source: db-test-store
+              target: /var/lib/mysql
+              volume:
+                  nocopy: true
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         container_name: phpmyadmin
