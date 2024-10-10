@@ -10,6 +10,7 @@ class UsersFilter extends QueryFilter
     protected $validParameters = [
 
         'username' => ['eq'],
+        'id' => ['eq'],
         'email' => ['eq'],
         'role' => ['eq'],
         'updatedAt' => ['gt', 'lt'],
